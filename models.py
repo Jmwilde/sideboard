@@ -2,6 +2,12 @@ from sqlalchemy import Column, String, Integer, create_engine
 from flask_sqlalchemy import SQLAlchemy
 import json
 import os
+import re
+
+# Heroku / SQLAlchemy compatibility fix
+uri = os.getenv("DATABASE_URL")
+if uri.startswith("postgres://"):
+    uri = uri.replace("postgres://", "postgresql://", 1)
 
 database_path = os.environ['DATABASE_URL']
 
