@@ -9,7 +9,9 @@ uri = os.getenv("DATABASE_URL")
 if uri.startswith("postgres://"):
     uri = uri.replace("postgres://", "postgresql://", 1)
 
-database_path = os.environ['DATABASE_URL']
+print(f'DATABASE_URL:{uri}')
+
+database_path = uri
 
 db = SQLAlchemy()
 
