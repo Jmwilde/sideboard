@@ -11,6 +11,10 @@ def create_app(test_config=None):
     setup_db(app)
     CORS(app)
 
+    @app.route('/', methods=['GET'])
+    def hello():
+        return "Hello World!"
+
     @app.route('/merchants', methods=['GET'])
     def get_merchants():
         try:
