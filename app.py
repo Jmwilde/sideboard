@@ -4,6 +4,7 @@ from flask import Flask, jsonify, abort, request
 from models import setup_db, Merchant, Item, Customer
 from flask_cors import CORS
 from sqlalchemy.exc import IntegrityError
+from werkzeug.exceptions import HTTPException
 
 def create_app(test_config=None):
 
@@ -42,10 +43,10 @@ def create_app(test_config=None):
         except:
             abort(400)
 
-    @app.route('/merchants/<int:id>', methods=['PATCH'])
-    def edit_merchant(id):
+    @app.route('/merchants/<int:merchant_id>', methods=['PATCH'])
+    def edit_merchant(merchant_id):
         try:
-            merchant = Merchant.query.filter(Merchant.id == id).one_or_none()
+            merchant = Merchant.query.filter(Merchant.id == merchant_id).one_or_none()
             if not merchant:
                 abort(404)
 
@@ -64,12 +65,28 @@ def create_app(test_config=None):
         # Handle requests that break db constraints
         except IntegrityError:
             abort(409)
+        # Rethrow http exceptions
+        except HTTPException as e:
+            abort(e.code)
         except:
             abort(400)
 
-    @app.route('/merchants/<int:id>', methods=['DELETE'])
-    def delete_merchant():
-        pass
+    @app.route('/merchants/<int:merchant_id>', methods=['DELETE'])
+    def delete_merchant(merchant_id):
+        try:
+            merchant = Merchant.query.get(merchant_id)
+            if not merchant:
+                abort(404)
+            merchant.delete()
+            return jsonify({
+                'success': True,
+                'merchant': merchant.format()
+            })
+        # Rethrow http exceptions
+        except HTTPException as e:
+            abort(e.code)
+        except:
+            abort(400)
 
     @app.errorhandler(400)
     def bad_request(e):
@@ -87,7 +104,7 @@ def create_app(test_config=None):
             'status': e.code,
             'error': e.name,
             'message': e.description
-        }), 400
+        }), 404
 
     @app.errorhandler(409)
     def conflict(e):
