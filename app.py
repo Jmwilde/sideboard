@@ -88,6 +88,81 @@ def create_app(test_config=None):
         except:
             abort(400)
 
+    @app.route('/items', methods=['GET'])
+    def get_items():
+        try:
+            items = Item.query.all()
+            items_json = json.dumps([item.format() for item in items])
+            return jsonify({
+                'success': True,
+                'items': items_json
+            })
+        except:
+            abort(400)
+
+    @app.route('/items', methods=['POST'])
+    def create_item():
+        print("Create item")
+        try:
+            body = json.loads(request.data)
+            item = Item(**body)
+            item.insert()
+            return jsonify({
+                'success': True,
+                'item': item.format()
+            })
+        except IntegrityError as e:
+            print(f'Exception: {e}')
+            abort(409)
+        except Exception as e:
+            print(f'Exception: {e}')
+            abort(400)
+
+    @app.route('/items/<int:item_id>', methods=['PATCH'])
+    def edit_item(item_id):
+        try:
+            item = Item.query.filter(Item.id == item_id).one_or_none()
+            if not item:
+                abort(404)
+
+            body = json.loads(request.data)
+            # Patch means only update fields found in the request
+            # Maps the request fields to the data model
+            for k, v in body.items():
+                print(f'{k = }')
+                setattr(item, k, v)
+
+            item.update()
+            return jsonify({
+                'success': True,
+                'item': item.format()
+            })
+        # Handle requests that break db constraints
+        except IntegrityError:
+            abort(409)
+        # Rethrow http exceptions
+        except HTTPException as e:
+            abort(e.code)
+        except:
+            abort(400)
+
+    @app.route('/items/<int:item_id>', methods=['DELETE'])
+    def delete_item(item_id):
+        try:
+            item = Item.query.get(item_id)
+            if not item:
+                abort(404)
+            item.delete()
+            return jsonify({
+                'success': True,
+                'item': item.format()
+            })
+        # Rethrow http exceptions
+        except HTTPException as e:
+            abort(e.code)
+        except:
+            abort(400)
+
     @app.errorhandler(400)
     def bad_request(e):
         return jsonify({

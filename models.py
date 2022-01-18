@@ -4,6 +4,8 @@ import json
 import os
 import re
 
+#TODO: Move session handling into a Base class that each Model inherits from
+
 # Heroku / SQLAlchemy compatibility fix
 uri = os.getenv("DATABASE_URL")
 if uri.startswith("postgres://"):
@@ -24,8 +26,7 @@ def setup_db(app, database_path=database_path):
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     db.app = app
     db.init_app(app)
-    db.create_all()
-    #db_drop_and_create_all()
+    db_drop_and_create_all()
 
 '''
 db_drop_and_create_all()
@@ -102,14 +103,16 @@ class Item(db.Model):
     id = Column(Integer, nullable=False, primary_key=True)
     name = Column(String(100), nullable=False)
     price = Column(Float, nullable=False)
+    description = Column(String(500))
     image_link = Column(String(500))
     merchant_id = Column(Integer, db.ForeignKey('merchants.id'))
     # Item.merchant exists via backref
 
-    def __init__(self, name, price, merchant_id):
+    def __init__(self, name, price, merchant_id, description=None, image_link=None):
         self.name = name
         self.price = price
-        self.image_link = None
+        self.description = description
+        self.image_link = image_link
         self.merchant_id = merchant_id
 
     def format(self):
