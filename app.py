@@ -5,11 +5,12 @@ from models import db, setup_db, Merchant, Item, Customer
 from flask_cors import CORS
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from werkzeug.exceptions import HTTPException
+from config import Config
 
-def create_app(test_config=None):
+def create_app(config=Config):
 
     app = Flask(__name__)
-    setup_db(app)
+    setup_db(app, config)
     CORS(app)
 
     @app.route('/', methods=['GET'])

@@ -4,27 +4,17 @@ import json
 import os
 import re
 
-# Heroku / SQLAlchemy compatibility fix
-uri = os.getenv("DATABASE_URL")
-if uri.startswith("postgres://"):
-    uri = uri.replace("postgres://", "postgresql://", 1)
-
-print(f'DATABASE_URL:{uri}')
-
-database_path = uri
-
 db = SQLAlchemy()
 
 '''
 setup_db(app)
     binds a flask application and a SQLAlchemy service
 '''
-def setup_db(app, database_path=database_path):
-    app.config["SQLALCHEMY_DATABASE_URI"] = database_path
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+def setup_db(app, config):
+    app.config.from_object(config)
     db.app = app
     db.init_app(app)
-    db_drop_and_create_all()
+    db.create_all()
 
 '''
 db_drop_and_create_all()
@@ -103,7 +93,7 @@ class Item(db.Model):
     price = Column(Float, nullable=False)
     description = Column(String(500))
     image_link = Column(String(500))
-    merchant_id = Column(Integer, db.ForeignKey('merchants.id'))
+    merchant_id = Column(Integer, db.ForeignKey('merchants.id'), nullable=False)
     # Item.merchant exists via backref
 
     def __init__(self, name, price, merchant_id, description=None, image_link=None):
@@ -133,7 +123,7 @@ class Item(db.Model):
         db.session.commit()
 
     def __repr__(self):
-        return json.dumps(self.short())
+        return json.dumps(self.format())
 
 class Customer(db.Model):
     __tablename__ = "customers"
