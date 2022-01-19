@@ -4,8 +4,6 @@ import json
 import os
 import re
 
-#TODO: Move session handling into a Base class that each Model inherits from
-
 # Heroku / SQLAlchemy compatibility fix
 uri = os.getenv("DATABASE_URL")
 if uri.startswith("postgres://"):

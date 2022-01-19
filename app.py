@@ -1,9 +1,9 @@
 import os
 import json
 from flask import Flask, jsonify, abort, request
-from models import setup_db, Merchant, Item, Customer
+from models import db, setup_db, Merchant, Item, Customer
 from flask_cors import CORS
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from werkzeug.exceptions import HTTPException
 
 def create_app(test_config=None):
@@ -18,150 +18,111 @@ def create_app(test_config=None):
 
     @app.route('/merchants', methods=['GET'])
     def get_merchants():
-        try:
-            merchants = Merchant.query.all()
-            merchants_json = json.dumps([merchant.format() for merchant in merchants])
-            return jsonify({
-                'success': True,
-                'merchants': merchants_json
-            })
-        except:
-            abort(400)
+        merchants = Merchant.query.all()
+        merchants_json = json.dumps([merchant.format() for merchant in merchants])
+        return jsonify({
+            'success': True,
+            'merchants': merchants_json
+        })
 
     @app.route('/merchants', methods=['POST'])
     def create_merchant():
-        try:
-            body = json.loads(request.data)
-            merchant = Merchant(**body)
-            merchant.insert()
-            return jsonify({
-                'success': True,
-                'merchant': merchant.format()
-            })
-        except IntegrityError as e:
-            abort(409)
-        except:
-            abort(400)
+        body = json.loads(request.data)
+        merchant = Merchant(**body)
+        merchant.insert()
+        return jsonify({
+            'success': True,
+            'merchant': merchant.format()
+        })
 
     @app.route('/merchants/<int:merchant_id>', methods=['PATCH'])
     def edit_merchant(merchant_id):
-        try:
-            merchant = Merchant.query.filter(Merchant.id == merchant_id).one_or_none()
-            if not merchant:
-                abort(404)
+        merchant = Merchant.query.filter(Merchant.id == merchant_id).one_or_none()
+        if not merchant:
+            abort(404)
 
-            body = json.loads(request.data)
-            # Patch means only update fields found in the request
-            # Maps the request fields to the data model
-            for k, v in body.items():
-                print(f'{k = }')
-                setattr(merchant, k, v)
+        body = json.loads(request.data)
+        # Patch means only update fields found in the request
+        # Maps the request fields to the data model
+        for k, v in body.items():
+            print(f'{k = }')
+            setattr(merchant, k, v)
 
-            merchant.update()
-            return jsonify({
-                'success': True,
-                'merchant': merchant.format()
-            })
-        # Handle requests that break db constraints
-        except IntegrityError:
-            abort(409)
-        # Rethrow http exceptions
-        except HTTPException as e:
-            abort(e.code)
-        except:
-            abort(400)
+        merchant.update()
+        return jsonify({
+            'success': True,
+            'merchant': merchant.format()
+        })
 
     @app.route('/merchants/<int:merchant_id>', methods=['DELETE'])
     def delete_merchant(merchant_id):
-        try:
-            merchant = Merchant.query.get(merchant_id)
-            if not merchant:
-                abort(404)
-            merchant.delete()
-            return jsonify({
-                'success': True,
-                'merchant': merchant.format()
-            })
-        # Rethrow http exceptions
-        except HTTPException as e:
-            abort(e.code)
-        except:
-            abort(400)
+        merchant = Merchant.query.get(merchant_id)
+        if not merchant:
+            abort(404)
+        merchant.delete()
+        return jsonify({
+            'success': True,
+            'merchant': merchant.format()
+        })
 
     @app.route('/items', methods=['GET'])
     def get_items():
-        try:
-            items = Item.query.all()
-            items_json = json.dumps([item.format() for item in items])
-            return jsonify({
-                'success': True,
-                'items': items_json
-            })
-        except:
-            abort(400)
+        items = Item.query.all()
+        items_json = json.dumps([item.format() for item in items])
+        return jsonify({
+            'success': True,
+            'items': items_json
+        })
 
     @app.route('/items', methods=['POST'])
     def create_item():
-        print("Create item")
-        try:
-            body = json.loads(request.data)
-            item = Item(**body)
-            item.insert()
-            return jsonify({
-                'success': True,
-                'item': item.format()
-            })
-        except IntegrityError as e:
-            print(f'Exception: {e}')
-            abort(409)
-        except Exception as e:
-            print(f'Exception: {e}')
-            abort(400)
+        body = json.loads(request.data)
+        item = Item(**body)
+        item.insert()
+        return jsonify({
+            'success': True,
+            'item': item.format()
+        })
 
     @app.route('/items/<int:item_id>', methods=['PATCH'])
     def edit_item(item_id):
-        try:
-            item = Item.query.filter(Item.id == item_id).one_or_none()
-            if not item:
-                abort(404)
+        item = Item.query.filter(Item.id == item_id).one_or_none()
+        if not item:
+            abort(404)
 
-            body = json.loads(request.data)
-            # Patch means only update fields found in the request
-            # Maps the request fields to the data model
-            for k, v in body.items():
-                print(f'{k = }')
-                setattr(item, k, v)
+        body = json.loads(request.data)
+        # Patch means only update fields found in the request
+        # Maps the request fields to the data model
+        for k, v in body.items():
+            print(f'{k = }')
+            setattr(item, k, v)
 
-            item.update()
-            return jsonify({
-                'success': True,
-                'item': item.format()
-            })
-        # Handle requests that break db constraints
-        except IntegrityError:
-            abort(409)
-        # Rethrow http exceptions
-        except HTTPException as e:
-            abort(e.code)
-        except:
-            abort(400)
+        item.update()
+        return jsonify({
+            'success': True,
+            'item': item.format()
+        })
 
     @app.route('/items/<int:item_id>', methods=['DELETE'])
     def delete_item(item_id):
-        try:
-            item = Item.query.get(item_id)
-            if not item:
-                abort(404)
-            item.delete()
-            return jsonify({
-                'success': True,
-                'item': item.format()
-            })
-        # Rethrow http exceptions
-        except HTTPException as e:
-            abort(e.code)
-        except:
-            abort(400)
+        item = Item.query.get(item_id)
+        if not item:
+            abort(404)
+        item.delete()
+        return jsonify({
+            'success': True,
+            'item': item.format()
+        })
+    
+    @app.errorhandler(SQLAlchemyError)
+    def db_error(e):
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'status': 409,
+            'error': e.__class__.__name__,
+            'message': 'Request conflicts with database constraints.'
+        }), 409
 
     @app.errorhandler(400)
     def bad_request(e):
@@ -189,6 +150,15 @@ def create_app(test_config=None):
             'error': e.name,
             'message': e.description
         }), 409
+    
+    @app.errorhandler(500)
+    def internal_server(e):
+        return jsonify({
+            'success': False,
+            'status': e.code,
+            'error': e.name,
+            'message': e.description
+        }), 500
 
     return app
 
