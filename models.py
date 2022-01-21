@@ -80,7 +80,9 @@ class Merchant(db.Model):
         db.session.delete(self)
         db.session.commit()
 
-    def update(self):
+    def update(self, **kwargs):
+        for attr, value in kwargs.items():
+            setattr(self, attr, value)
         db.session.commit()
 
     def __repr__(self):
@@ -119,7 +121,9 @@ class Item(db.Model):
         db.session.delete(self)
         db.session.commit()
 
-    def update(self):
+    def update(self, **kwargs):
+        for attr, value in kwargs.items():
+            setattr(self, attr, value)
         db.session.commit()
 
     def __repr__(self):

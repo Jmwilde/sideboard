@@ -43,13 +43,8 @@ def create_app(config=Config):
             abort(404)
 
         body = json.loads(request.data)
-        # Patch means only update fields found in the request
-        # Maps the request fields to the data model
-        for k, v in body.items():
-            print(f'{k = }')
-            setattr(merchant, k, v)
-
-        merchant.update()
+        # PATCH: Update only the fields found in the request
+        merchant.update(**body)
         return jsonify({
             'success': True,
             'merchant': merchant.format()
@@ -92,13 +87,7 @@ def create_app(config=Config):
             abort(404)
 
         body = json.loads(request.data)
-        # Patch means only update fields found in the request
-        # Maps the request fields to the data model
-        for k, v in body.items():
-            print(f'{k = }')
-            setattr(item, k, v)
-
-        item.update()
+        item.update(**body)
         return jsonify({
             'success': True,
             'item': item.format()
