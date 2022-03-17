@@ -1,4 +1,5 @@
-from sqlalchemy import Column, String, Integer, Float, create_engine
+from sqlalchemy import Table, Column, String, Integer, Float, ForeignKey, create_engine
+from sqlalchemy.orm import relationship
 from flask_sqlalchemy import SQLAlchemy
 import json
 import os
@@ -24,6 +25,33 @@ db_drop_and_create_all()
 def db_drop_and_create_all():
     db.drop_all()
     db.create_all()
+
+"""
+Customers can save their favorite items
+1 customer can have many favorites
+1 favorite item can be liked by many customers
+Hence we have a many to many relation
+"""
+favorite_items_table = db.Table('favorites',
+    Column('customer_id', ForeignKey('customers.id'), primary_key=True),
+    Column('item_id', ForeignKey('items.id'), primary_key=True)
+)
+
+"""
+Customers can view purchased items
+1 customer can purchase many items
+1 item can be purchased by many customers
+Hence we have a many to many relation
+"""
+purchased_items_table = db.Table('purchased',
+    Column('customer_id', ForeignKey('customers.id'), primary_key=True),
+    Column('item_id', ForeignKey('items.id'), primary_key=True)
+)
+
+"""
+1 customer can buy from many different merchants
+1 merchant can sell to many different customers
+"""
 
 '''
 Merchant
@@ -133,6 +161,7 @@ class Customer(db.Model):
     __tablename__ = "customers"
     id = Column(Integer, nullable=False, primary_key=True)
     name = Column(String(100), nullable=False)
-    favorites = None
-    purchases = None
-    wishlist = None
+    email = Column(String(100), nullable=False)
+    favorites = db.relationship("Item", secondary=favorite_items_table)
+    purchases = db.relationship("Item", secondary=purchased_items_table)
+

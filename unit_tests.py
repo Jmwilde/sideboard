@@ -12,6 +12,16 @@ from models import db, setup_db, Merchant, Item, Customer
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+# JWTs for each role
+admin_token = os.environ.get('ADMIN_TOKEN')
+merchant_token = os.environ.get('MERCHANT_TOKEN')
+customer_token = os.environ.get('CUSTOMER_TOKEN')
+
+# Auth headers
+admin_auth_header = {'Authorization': f'Bearer {admin_token}'}
+merchant_auth_header = {'Authorization': f'Bearer {merchant_token}'}
+customer_auth_header = {'Authorization': f'Bearer {customer_token}'}
+
 class SideboardTest(unittest.TestCase):
     """This class represents the sideboard test case"""
 
@@ -221,6 +231,20 @@ class SideboardTest(unittest.TestCase):
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 404)
+        self.assertEqual(data['success'], False)
+
+    # TODO: Write negative test case for merchant create w/ merchant role
+    # TODO: Write positive test case for item create w/ merchant role
+
+    # TODO: Positive case for item get for customer role
+    # TODO: Negative case for item create for customer role
+
+    # Merchant role tests
+    def test_create_merchant_with_merchant_role(self):
+        res = self.client().post('/merchants', headers=merchant_auth_header)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 401)
         self.assertEqual(data['success'], False)
 
 
