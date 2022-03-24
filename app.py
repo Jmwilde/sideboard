@@ -1,6 +1,6 @@
 import os
 import json
-from flask import Flask, jsonify, abort, request, _request_ctx_stack
+from flask import Flask, jsonify, abort, request
 from models import db, setup_db, Merchant, Item, Customer
 from flask_cors import CORS
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
@@ -16,9 +16,9 @@ def create_app(config=Config):
 
     @app.route('/', methods=['GET'])
     def hello():
-        return "Hello World!"
+        return "Welcome to SideBoard!"
 
-### Merchants ###
+### MERCHANTS ###
 
     @app.route('/merchants', methods=['GET'])
     @requires_auth(permission='get:merchants')
@@ -127,7 +127,7 @@ def create_app(config=Config):
         customers_json = json.dumps([cust.format() for cust in customers])
         return jsonify({
             'success': True,
-            'items': customers_json
+            'customers': customers_json
         })
 
     @app.route('/customers', methods=['POST'])
@@ -171,7 +171,7 @@ def create_app(config=Config):
 
     @app.errorhandler(SQLAlchemyError)
     def db_error(e):
-        print(f'{e = }')
+        #print(f'{e = }')
         db.session.rollback()
         return jsonify({
             'success': False,

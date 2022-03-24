@@ -165,3 +165,33 @@ class Customer(db.Model):
     favorites = db.relationship("Item", secondary=favorite_items_table)
     purchases = db.relationship("Item", secondary=purchased_items_table)
 
+    def __init__(self, name, email):
+        self.name = name
+        self.email = email
+        self.favorites = []
+        self.purchases = []
+
+    def format(self):
+        return {
+        'id': self.id,
+        'name': self.name,
+        'email': self.email,
+        'favorites': self.favorites,
+        'purchases': self.purchases}
+
+    def insert(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    def update(self, **kwargs):
+        for attr, value in kwargs.items():
+            setattr(self, attr, value)
+        db.session.commit()
+
+    def __repr__(self):
+        return json.dumps(self.format())
+
