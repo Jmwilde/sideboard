@@ -15,7 +15,9 @@ def setup_db(app, config):
     app.config.from_object(config)
     db.app = app
     db.init_app(app)
-    db.create_all()
+    # Note: This must be commented out when running migrations!
+    # Creating the tables interferes with the migration change detection between the tables and the models
+    #db.create_all()
 
 '''
 db_drop_and_create_all()
