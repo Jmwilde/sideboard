@@ -1,4 +1,4 @@
-from sqlalchemy import Table, Column, String, Integer, Float, ForeignKey, create_engine
+from sqlalchemy import Table, Column, String, Integer, Float, ForeignKey
 from sqlalchemy.orm import relationship
 from flask_sqlalchemy import SQLAlchemy
 import json
@@ -11,22 +11,29 @@ db = SQLAlchemy()
 setup_db(app)
     binds a flask application and a SQLAlchemy service
 '''
+
+
 def setup_db(app, config):
     app.config.from_object(config)
     db.app = app
     db.init_app(app)
     # Note: This must be commented out when running migrations!
-    # Creating the tables interferes with the migration change detection between the tables and the models
-    #db.create_all()
+    # Creating the tables interferes with the migration change
+    # detection between the tables and the models
+    # db.create_all()
+
 
 '''
 db_drop_and_create_all()
     drops the database tables and starts fresh
     can be used to initialize a clean database
 '''
+
+
 def db_drop_and_create_all():
     db.drop_all()
     db.create_all()
+
 
 """
 Customers can save their favorite items
@@ -35,9 +42,11 @@ Customers can save their favorite items
 Hence we have a many to many relation
 """
 favorite_items_table = db.Table('favorites',
-    Column('customer_id', ForeignKey('customers.id'), primary_key=True),
-    Column('item_id', ForeignKey('items.id'), primary_key=True)
-)
+                                Column('customer_id', ForeignKey(
+                                    'customers.id'), primary_key=True),
+                                Column('item_id', ForeignKey(
+                                    'items.id'), primary_key=True)
+                                )
 
 """
 Customers can view purchased items
@@ -46,9 +55,11 @@ Customers can view purchased items
 Hence we have a many to many relation
 """
 purchased_items_table = db.Table('purchased',
-    Column('customer_id', ForeignKey('customers.id'), primary_key=True),
-    Column('item_id', ForeignKey('items.id'), primary_key=True)
-)
+                                 Column('customer_id', ForeignKey(
+                                     'customers.id'), primary_key=True),
+                                 Column('item_id', ForeignKey(
+                                     'items.id'), primary_key=True)
+                                 )
 
 """
 1 customer can buy from many different merchants
@@ -59,6 +70,8 @@ purchased_items_table = db.Table('purchased',
 Merchant
 Contains contact info and a list of items
 '''
+
+
 class Merchant(db.Model):
     __tablename__ = 'merchants'
     id = Column(Integer, primary_key=True)
@@ -71,10 +84,12 @@ class Merchant(db.Model):
     insta_link = Column(String(120))
     image_link = Column(String(500))
     description = Column(String(500))
-    items = db.relationship("Item", backref="merchant", lazy=True, cascade="all, delete-orphan")
+    items = db.relationship("Item", backref="merchant",
+                            lazy=True, cascade="all, delete-orphan")
 
-    def __init__(self, name, city=None, state=None, phone=None, email=None,
-                 fb_link=None, insta_link=None, image_link=None, description=None):
+    def __init__(self, name, city=None, state=None,
+                 phone=None, email=None, fb_link=None,
+                 insta_link=None, image_link=None, description=None):
         self.name = name
         self.city = city
         self.state = state
@@ -87,7 +102,7 @@ class Merchant(db.Model):
         self.items = []
 
     def format(self):
-        items_json = json.dumps([item.format() for item in self.items])
+        items_json = [item.format() for item in self.items]
         return {
             'id': self.id,
             'name': self.name,
@@ -118,6 +133,7 @@ class Merchant(db.Model):
     def __repr__(self):
         return json.dumps(self.format())
 
+
 class Item(db.Model):
     __tablename__ = "items"
     id = Column(Integer, nullable=False, primary_key=True)
@@ -125,10 +141,12 @@ class Item(db.Model):
     price = Column(Float, nullable=False)
     description = Column(String(500))
     image_link = Column(String(500))
-    merchant_id = Column(Integer, db.ForeignKey('merchants.id'), nullable=False)
+    merchant_id = Column(Integer, db.ForeignKey(
+        'merchants.id'), nullable=False)
     # Item.merchant exists via backref
 
-    def __init__(self, name, price, merchant_id, description=None, image_link=None):
+    def __init__(self, name, price, merchant_id,
+                 description=None, image_link=None):
         self.name = name
         self.price = price
         self.description = description
@@ -137,11 +155,11 @@ class Item(db.Model):
 
     def format(self):
         return {
-        'id': self.id,
-        'name': self.name,
-        'price': self.price,
-        'image_link': self.image_link,
-        'merchant_id': self.merchant_id}
+            'id': self.id,
+            'name': self.name,
+            'price': self.price,
+            'image_link': self.image_link,
+            'merchant_id': self.merchant_id}
 
     def insert(self):
         db.session.add(self)
@@ -158,6 +176,7 @@ class Item(db.Model):
 
     def __repr__(self):
         return json.dumps(self.format())
+
 
 class Customer(db.Model):
     __tablename__ = "customers"
@@ -175,11 +194,11 @@ class Customer(db.Model):
 
     def format(self):
         return {
-        'id': self.id,
-        'name': self.name,
-        'email': self.email,
-        'favorites': self.favorites,
-        'purchases': self.purchases}
+            'id': self.id,
+            'name': self.name,
+            'email': self.email,
+            'favorites': self.favorites,
+            'purchases': self.purchases}
 
     def insert(self):
         db.session.add(self)
@@ -196,4 +215,3 @@ class Customer(db.Model):
 
     def __repr__(self):
         return json.dumps(self.format())
-

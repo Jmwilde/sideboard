@@ -8,6 +8,7 @@ from werkzeug.exceptions import HTTPException
 from config import Config
 from auth import requires_auth, AuthError
 
+
 def create_app(config=Config):
 
     app = Flask(__name__)
@@ -18,17 +19,16 @@ def create_app(config=Config):
     def hello():
         return "Welcome to SideBoard!"
 
-### MERCHANTS ###
+# MERCHANTS
 
     @app.route('/merchants', methods=['GET'])
     @requires_auth(permission='get:merchants')
     def get_merchants():
         merchants = Merchant.query.all()
-        merchants_json = json.dumps([merchant.format() for merchant in merchants])
-
+        formatted_merchants = [merchant.format() for merchant in merchants]
         return jsonify({
             'success': True,
-            'merchants': merchants_json
+            'merchants': formatted_merchants
         })
 
     @app.route('/merchants', methods=['POST'])
@@ -45,7 +45,8 @@ def create_app(config=Config):
     @app.route('/merchants/<int:merchant_id>', methods=['PATCH'])
     @requires_auth(permission='patch:merchants')
     def edit_merchant(merchant_id):
-        merchant = Merchant.query.filter(Merchant.id == merchant_id).one_or_none()
+        merchant = Merchant.query.filter(
+            Merchant.id == merchant_id).one_or_none()
         if not merchant:
             abort(404)
 
@@ -69,16 +70,16 @@ def create_app(config=Config):
             'merchant': merchant.format()
         })
 
-### ITEMS ###
+# ITEMS
 
     @app.route('/items', methods=['GET'])
     @requires_auth(permission='get:items')
     def get_items():
         items = Item.query.all()
-        items_json = json.dumps([item.format() for item in items])
+        formatted_items = [item.format() for item in items]
         return jsonify({
             'success': True,
-            'items': items_json
+            'items': formatted_items
         })
 
     @app.route('/items', methods=['POST'])
@@ -118,16 +119,16 @@ def create_app(config=Config):
             'item': item.format()
         })
 
-### CUSTOMERS ###
+# CUSTOMERS
 
     @app.route('/customers', methods=['GET'])
     @requires_auth(permission='get:customers')
     def get_customers():
         customers = Customer.query.all()
-        customers_json = json.dumps([cust.format() for cust in customers])
+        formatted_customers = [cust.format() for cust in customers]
         return jsonify({
             'success': True,
-            'customers': customers_json
+            'customers': formatted_customers
         })
 
     @app.route('/customers', methods=['POST'])
@@ -144,7 +145,8 @@ def create_app(config=Config):
     @app.route('/customers/<int:customer_id>', methods=['PATCH'])
     @requires_auth(permission='patch:customers')
     def edit_customer(customer_id):
-        customer = Customer.query.filter(Customer.id == customer_id).one_or_none()
+        customer = Customer.query.filter(
+            Customer.id == customer_id).one_or_none()
         if not customer:
             abort(404)
 
@@ -167,11 +169,11 @@ def create_app(config=Config):
             'customer': customer.format()
         })
 
-### Error handlers ###
+# Error handlers
 
     @app.errorhandler(SQLAlchemyError)
     def db_error(e):
-        #print(f'{e = }')
+        # print(f'{e = }')
         db.session.rollback()
         return jsonify({
             'success': False,
@@ -226,6 +228,7 @@ def create_app(config=Config):
         }), 500
 
     return app
+
 
 app = create_app()
 

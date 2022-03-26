@@ -1,23 +1,27 @@
 import json
+import os
 from flask import request
 from functools import wraps
 from jose import jwt
 from urllib.request import urlopen
 
 
-AUTH0_DOMAIN = 'jmw-dev.us.auth0.com'
-ALGORITHMS = ['RS256']
-API_AUDIENCE = 'sideboard'
+AUTH0_DOMAIN = os.getenv('AUTH0_DOMAIN')
+ALGORITHMS = os.getenv('ALGORITHMS')
+API_AUDIENCE = os.getenv('API_AUDIENCE')
 
-## AuthError Exception
+# AuthError Exception
 '''
 AuthError Exception
 A standardized way to communicate auth failure modes
 '''
+
+
 class AuthError(Exception):
     def __init__(self, error, status_code):
         self.error = error
         self.status_code = status_code
+
 
 def get_token_auth_header():
     auth_header = request.headers.get('Authorization', None)
@@ -55,21 +59,25 @@ def get_token_auth_header():
     token = parts[1]
     return token
 
+
 def check_permissions(permission, payload):
 
     if 'permissions' not in payload:
         raise AuthError({
-                'code': 'invalid_payload',
-                'description': 'Incorrect payload. Payload must contain permissions field.'
+            'code': 'invalid_payload',
+            'description':
+            'Incorrect payload. Payload must contain permissions field.'
         }, 400)
 
     if permission not in payload['permissions']:
         raise AuthError({
-                'code': 'invalid_permissions',
-                'description': 'Invalid permissions. User does not have the required permissions.'
+            'code': 'invalid_permissions',
+            'description':
+            'Invalid permissions. User does not have the required permissions.'
         }, 401)
 
     return True
+
 
 def verify_decode_jwt(token):
     jsonurl = urlopen(f'https://{AUTH0_DOMAIN}/.well-known/jwks.json')
@@ -96,7 +104,7 @@ def verify_decode_jwt(token):
             payload = jwt.decode(
                 token,
                 rsa_key,
-                algorithms=ALGORITHMS,
+                algorithms=[ALGORITHMS],
                 audience=API_AUDIENCE,
                 issuer='https://' + AUTH0_DOMAIN + '/'
             )
@@ -110,7 +118,8 @@ def verify_decode_jwt(token):
         except jwt.JWTClaimsError:
             raise AuthError({
                 'code': 'invalid_claims',
-                'description': 'Incorrect claims. Please, check the audience and issuer.'
+                'description':
+                'Incorrect claims. Please, check the audience and issuer.'
             }, 401)
         except Exception:
             raise AuthError({
@@ -119,9 +128,10 @@ def verify_decode_jwt(token):
             }, 400)
     else:
         raise AuthError({
-                'code': 'invalid_header',
-                'description': 'Unable to find the appropriate key.'
-            }, 400)
+            'code': 'invalid_header',
+            'description': 'Unable to find the appropriate key.'
+        }, 400)
+
 
 def requires_auth(permission=''):
     def requires_auth_decorator(f):
